@@ -1,0 +1,86 @@
+% Four-page report on Hoshen-Kopelman Algorithm and Results
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\title{Hoshen--Kopelman Algorithm and Monte Carlo Percolation Results}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+Percolation theory studies the emergence of long-range connectivity in random media. In an $L\times L$ lattice where each site is occupied with probability $p$, the fundamental question is whether a spanning cluster exists. Efficient cluster labeling is essential for large-scale Monte Carlo simulations, especially at system sizes such as $1000\times1000$. The Hoshen--Kopelman (HK) algorithm provides an $O(N)$ method for cluster identification using a single-pass scan.
+
+\section{Hoshen--Kopelman Algorithm}
+\subsection{Overview}
+The HK algorithm labels connected components (clusters) in a binary lattice. It avoids recursion and reduces memory usage by maintaining only neighbor information and an equivalence table. The lattice is scanned row by row, assigning temporary labels and merging equivalent labels.
+
+\subsection{Neighborhood Definition}
+We adopt a nearest-neighbor (4-connected) scheme. For a site at $(i,j)$:
+\begin{itemize}
+    \item Left neighbor: $(i,j-1)$
+    \item Upper neighbor: $(i-1,j)$
+\end{itemize}
+If the current site is unoccupied, assign label 0. If occupied, determine labels from neighbors.
+
+\subsection{Labeling Rules}
+Let $a$ be the upper label and $b$ be the left label:
+\begin{itemize}
+    \item If both are 0 (no neighbors): assign a new label.
+    \item If only one is nonzero: copy that label.
+    \item If both nonzero and equal: copy that label.
+    \item If both nonzero and different: assign one and record equivalence in the union--find table.
+\end{itemize}
+
+\subsection{Union--Find Structure}
+The HK algorithm uses a root table for resolving equivalences. After scanning the entire lattice, a second pass resolves all labels so that each site receives its root label. This step ensures all clusters are uniquely identified.
+
+\subsection{Computational Efficiency}
+For a $1000\times1000$ lattice, naive algorithms result in excessive recursion. HK reduces this to linear time, enabling repeated Monte Carlo trials over many values of $p$, such as:
+\begin{align*}
+    p &\in [0.10, 0.45], \Delta p = 0.05 \\
+    p &\in [0.45, 0.55], \Delta p = 0.025 \\
+    p &\in [0.55, 0.65], \Delta p = 0.005 \\
+    p &\in [0.65, 0.70], \Delta p = 0.025 \\
+    p &\in [0.70, 0.90], \Delta p = 0.05
+\end{align*}
+This coarse-to-fine sampling focuses resolution near the percolation threshold $p_c \approx 0.5927$.
+
+\newpage
+\section{Monte Carlo Results}
+Using 50--100 Monte Carlo trials per probability value, we obtain statistics such as:
+\begin{itemize}
+    \item Percolation probability $P(p)$
+    \item Mean largest-cluster size $S_{\max}$
+    \item Cluster size distribution $n(s)$
+\end{itemize}
+Illustrative figures (omit here) demonstrate the sharp transition near $p_c$.
+
+\subsection{Percolation Probability}
+The quantity $P(p)$ is defined as the fraction of trials in which a spanning cluster exists. For $p \ll p_c$, $P(p) \approx 0$. As $p$ increases, $P(p)$ exhibits a sigmoidal rise.
+
+\subsection{Largest Cluster Behavior}
+Below threshold, clusters remain finite and small. At $p=p_c$, scale-free behavior emerges:
+\[
+    n(s) \sim s^{-\tau}, \qquad \tau \approx 2.05.
+\]
+Above $p_c$, a ``giant'' cluster forms and rapidly dominates the system.
+
+\subsection{Finite-Size Considerations}
+For $L=1000$, the system is sufficiently large that finite-size rounding is modest, but still observable near $p_c$. Increasing $L$ further would sharpen the transition.
+
+\subsection{Computation Time}
+A single 1000$\times$1000HK pass takes on the order of milliseconds to tens of milliseconds depending on implementation. Repeating 50--100 trials per $p$ results in moderate compute load but remains feasible on modern hardware.
+
+\section{Conclusion}
+The HK algorithm provides an efficient method for identifying clusters in large percolation simulations. Our results confirm the classical behavior of 2D site percolation, including the percolation threshold and scaling trends.
+
+\end{document}
